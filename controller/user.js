@@ -13,13 +13,17 @@ const { v1: uuidV1 } = require('uuid');
 //   storage: 'path/to/database.sqlite'
 // });
 
+const {
+  HOST, DATABASE, USER, PASSWORD_DB, PORT_DB,
+} = process.env;
+
 // Option 3: Passing parameters separately (other dialects)
 const sequelize = new Sequelize({
-  database: 'd21e8ucdjcbgfp',
-  username: 'bevwoiaslidvbm',
-  password: '361dd96b5200772d1cb5f8a3ae9d21714b0b88019333fdf28b91e71eab7dc139',
-  host: 'ec2-3-230-11-138.compute-1.amazonaws.com',
-  port: 5432,
+  database: DATABASE,
+  username: USER,
+  password: PASSWORD_DB,
+  host: HOST,
+  port: PORT_DB,
   dialect: 'postgres',
   dialectOptions: {
     ssl: {

@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-console */
 // const cool = require('cool-ascii-faces');
 // const express = require('express');
 // const path = require('path');
