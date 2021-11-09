@@ -1,7 +1,8 @@
+/* eslint-disable max-len */
 /* eslint-disable no-console */
 /* eslint-disable no-unused-vars */
 const cool = require('cool-ascii-faces');
-const { Sequelize, DataTypes, Model } = require('sequelize');
+// const { Sequelize, DataTypes, Model } = require('sequelize');
 const { v1: uuidV1 } = require('uuid');
 // // Option 1: Passing a connection URI
 // const sequelize = new Sequelize('sqlite::memory:') // Example for sqlite
@@ -13,50 +14,51 @@ const { v1: uuidV1 } = require('uuid');
 //   storage: 'path/to/database.sqlite'
 // });
 
-const {
-  HOST, DATABASE, USER, PASSWORD_DB, PORT_DB,
-} = process.env;
+// const {
+//   HOST, DATABASE, USER, PASSWORD_DB, PORT_DB,
+// } = process.env;
 
-// Option 3: Passing parameters separately (other dialects)
-const sequelize = new Sequelize({
-  database: DATABASE,
-  username: USER,
-  password: PASSWORD_DB,
-  host: HOST,
-  port: PORT_DB,
-  dialect: 'postgres',
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false,
-    },
-  },
-});
+// // Option 3: Passing parameters separately (other dialects)
+// const sequelize = new Sequelize({
+//   database: DATABASE,
+//   username: USER,
+//   password: PASSWORD_DB,
+//   host: HOST,
+//   port: PORT_DB,
+//   dialect: 'postgres',
+//   dialectOptions: {
+//     ssl: {
+//       require: true,
+//       rejectUnauthorized: false,
+//     },
+//   },
+// });
 
-const User = sequelize.define('people', {
-  // Model attributes are defined here
-  id: {
-    type: DataTypes.STRING,
-    primaryKey: true,
-  },
-  name: {
-    type: DataTypes.STRING,
-  },
-  class: {
-    type: DataTypes.INTEGER,
-  },
-}, {
-  paranoid: true,
-});
+// const User = sequelize.define('people', {
+//   // Model attributes are defined here
+//   id: {
+//     type: DataTypes.STRING,
+//     primaryKey: true,
+//   },
+//   name: {
+//     type: DataTypes.STRING,
+//   },
+//   class: {
+//     type: DataTypes.INTEGER,
+//   },
+// }, {
+//   paranoid: true,
+// });
 
-(async () => {
-  // delete existing
-  // await User.sync({ force: true });
-  // not deleting existing
-  await User.sync();
-})();
+// (async () => {
+//   // delete existing
+//   // await User.sync({ force: true });
+//   // not deleting existing
+//   await User.sync();
+// })();
 
 const { Pool } = require('pg');
+const { User, sequelize } = require('../models/user-model');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -148,6 +150,7 @@ exports.sequelizeDbTransaction = async (req, res) => {
       console.log('🚀 ~ file: user.js ~ line 144 ~ result ~ destroyUser', destroyUser);
 
       // Cause rollback
+      // eslint-disable-next-line no-constant-condition
       if (true) {
         throw new Error('Rollback initiated');
       }
@@ -159,6 +162,7 @@ exports.sequelizeDbTransaction = async (req, res) => {
 
     // In this case, an instance of Model
     console.log('🚀 ~ file: user.js ~ line 157 ~ exports.sequelizeDbTransaction= ~ result', result);
+    return res.status(200).send({ status: 200, message: result });
   } catch (err) {
     // Rollback transaction if any errors were encountered
     console.log(1, err.name);
@@ -167,6 +171,51 @@ exports.sequelizeDbTransaction = async (req, res) => {
     console.log(4, err.stack);
     return res.status(400).send({ status: 400, message: err.stack });
   }
+};
 
-  return true;
+exports.sequelizeSoftDelete = async (req, res) => {
+  const { id } = req.params;
+  try {
+    // const post = await User.create({ title: 'test' });
+    // console.log(post instanceof Post); // true
+    const soft = await User.destroy({ where: { id } }); // Would just set the `deletedAt` flag
+    return res.status(200).send({ status: 200, message: soft });
+  } catch (err) {
+    console.log('🚀 ~ file: user.js ~ line 183 ~ exports.sequelizeSoftDelete ~ err', err);
+    return res.status(400).send({ status: 400, message: err.stack });
+  }
+};
+
+exports.sequelizeForceDelete = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const force = await User.destroy({ where: { id }, force: true });
+    return res.status(200).send({ status: 200, message: force });
+  } catch (err) {
+    console.log('🚀 ~ file: user.js ~ line 194 ~ exports.sequelizeForceDelete ~ err', err);
+    return res.status(400).send({ status: 400, message: err.stack });
+  }
+};
+
+exports.sequelizeRestore = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const restore = await User.restore({ where: { id } });
+    return res.status(200).send({ status: 200, message: restore });
+  } catch (err) {
+    console.log('🚀 ~ file: user.js ~ line 205 ~ exports.sequelizeRestoreDelete ~ err', err);
+    return res.status(400).send({ status: 400, message: err.stack });
+  }
+};
+
+exports.sequelizeRetrieveSoftDelete = async (req, res) => {
+  try {
+    const userSoft = await User.findAll({
+      paranoid: false,
+    });
+    return res.status(200).send({ status: 200, message: userSoft });
+  } catch (err) {
+    console.log('🚀 ~ file: user.js ~ line 217 ~ exports.sequelizeRetrieveSoftDelete ~ err', err);
+    return res.status(400).send({ status: 400, message: err.stack });
+  }
 };

@@ -1,11 +1,19 @@
 /* eslint-disable max-len */
 const express = require('express');
 
+
 const router = express.Router();
 const {
-  getListusers, renderIndex, coolIcon, getTimes, sequelizeGetListUser, sequelizeCreateUser, sequelizeDbTransaction,
+  getListusers, renderIndex, coolIcon, getTimes,
+  sequelizeGetListUser, sequelizeCreateUser,
+  sequelizeDbTransaction, sequelizeSoftDelete,
+  sequelizeRestore, sequelizeForceDelete, sequelizeRetrieveSoftDelete,
 } = require('../controller/user');
+const { sequelizeCreateBook, sequelizeUpdateBook } = require('../controller/book');
+
+const { validateBook } = require('../middleware/book-middleware');
 const { validateUser } = require('../middleware/user-middleware');
+const { sequelizeQueryRaw } = require('../controller/custom-raw');
 
 
 router.get('/', renderIndex);
@@ -13,32 +21,22 @@ router.get('/cool', coolIcon);
 router.get('/times', getTimes);
 router.get('/db', getListusers);
 
+// user
 router.get('/sequelize-get', sequelizeGetListUser);
 router.post('/sequelize-create-user', validateUser, sequelizeCreateUser);
 router.post('/sequelize-db-transaction', validateUser, sequelizeDbTransaction);
 
+router.get('/sequelize-soft-delete', sequelizeRetrieveSoftDelete);
+router.delete('/sequelize-soft-delete/:id', sequelizeSoftDelete);
+router.delete('/sequelize-force-delete/:id', sequelizeForceDelete);
+
+router.post('/sequelize-restore/:id', sequelizeRestore);
+
+// book
+router.post('/sequelize-create-book', validateBook, sequelizeCreateBook);
+router.put('/sequelize-update-book', sequelizeUpdateBook);
+
+// raw
+router.post('/sequelize-raw', sequelizeQueryRaw);
 
 module.exports = router;
-
-//   .get('/', (req, res) => res.render('pages/index'))
-//   .get('/cool', (req, res) => res.send(cool()))
-//   .get('/times', (req, res) => {
-//       let result = '';
-//       const times = process.env.TIMES || 5;
-//       for (i = 0; i < times; i++) {
-//         result += i + ' ';
-//       }
-//       return res.send(result);
-//   })
-//   .get('/db', async (req, res) => {
-//     try {
-//       const client = await pool.connect();
-//       const result = await client.query('SELECT * FROM test_table');
-//       const results = { 'results': (result) ? result.rows : null};
-//       res.render('pages/db', results );
-//       client.release();
-//     } catch (err) {
-//       console.error(err);
-//       res.send("Error " + err);
-//     }
-//   })
